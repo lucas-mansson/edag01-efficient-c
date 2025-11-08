@@ -2,7 +2,7 @@
 BasedOnStyle: LLVM
 IndentWidth: 8
 TabWidth: 8
-UseTab: Never  # or 'Always' for actual tabs
-ColumnLimit: 80  # line width
+UseTab: Never
+ColumnLimit: 80
 BreakBeforeBraces: Linux  # or Allman, GNU, etc.
 ---
