@@ -5,4 +5,5 @@ TabWidth: 8
 UseTab: Never
 ColumnLimit: 80
 BreakBeforeBraces: Linux  # or Allman, GNU, etc.
+PointerAlignment: Left
 ---
