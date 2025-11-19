@@ -10,14 +10,14 @@ typedef struct simplex {
         int* var;   // 0..n - 1 are nonbasic.
         double** a; // a[m][n+1];
         double* b;  // b[m]
-        double* x;  // x[n+1]
         double* c;  // c[n]
+        double* x;  // x[n+1]
         double y;   // y
 } simplex_t;
 
 // init - 'constructor' for simplex_t
-int init(simplex_t* s, int m, int n, double** a, double* b, double* x,
-         double* c, double y, int* var)
+int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
+         double* x, double y, int* var)
 {
         int i, k;
 
@@ -26,8 +26,8 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* x,
         s->var = var;
         s->a = a;
         s->b = b;
-        s->x = x;
         s->c = c;
+        s->x = x;
         s->y = y;
 
         if (s->var == NULL) {
@@ -56,8 +56,8 @@ int select_nonbasic(simplex_t* s)
 }
 
 // initial and assume bi ≥ 0 so skip the call to prepare and the rest of
-int initial(simplex_t* s, int m, int n, double** a, double* b, double* x,
-            double* c, double y, int* var)
+int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
+            double* x, double y, int* var)
 {
         int i;
         int j;
@@ -141,6 +141,7 @@ double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
         if (!initial(s, m, n, a, b, c, x, y, var)) {
                 free(s->var);
                 s->var = NULL;
+                free(s);
                 return -1;
         }
 
@@ -156,6 +157,7 @@ double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                 if (row < 0) {
                         free(s->var);
                         s->var = NULL;
+                        free(s);
                         return INFINITY;
                 }
                 pivot(s, row, col);
@@ -182,7 +184,7 @@ double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                         x[i] = s->b[i - n];
                 }
         }
-        int res = s->y;
+        double res = s->y;
         free(s);
         s = NULL;
         return res;
@@ -261,16 +263,19 @@ int main(int argc, char** argv)
         printf("Result: %lf \n", res);
 
         free(c);
-        c = NULL; // good practice to set pointers to null after free
+        c = NULL;
         for (int i = 0; i < m; i++) {
                 free(a[i]);
                 a[i] = NULL;
         }
         free(a);
-        c = NULL;
+        a = NULL;
 
         free(b);
         b = NULL;
+
+        free(x);
+        x = NULL;
 
         return 0;
 }
