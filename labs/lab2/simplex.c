@@ -1,8 +1,10 @@
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define epsilon 1e-6
 
-typedef struct simplex_t {
+typedef struct simplex {
         int m;      // Constraints
         int n;      // Decision variables
         int* var;   // 0..n - 1 are nonbasic.
@@ -35,7 +37,7 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* x,
                 }
         }
         for (int k = 0, i = 1; i < m; i++) {
-                if (b[i] < b[k]) {
+                if (s->b[i] < s->b[k]) {
                         k = i;
                 }
         }
@@ -46,7 +48,7 @@ int select_nonbasic(simplex_t* s)
 {
         int i;
         for (int i = 0; i < s->n; i++) {
-                if (s->c[i] > 0) {
+                if (s->c[i] > epsilon) {
                         return i;
                 }
         }
@@ -61,8 +63,8 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* x,
         int j;
         int k;
 
-        k = init(s, m, n, a, b, x, c, y, var);
-        if (b[k] <= 0) {
+        k = init(s, m, n, a, b, c, x, y, var);
+        if (s->b[k] <= 0) {
                 printf("b[k] is not greater than zero: b[%d]; %lf", k, b[k]);
                 return 0;
         }
@@ -94,9 +96,10 @@ void pivot(simplex_t* s, int row, int col)
         }
 
         c[col] = -c[col] / a[row][col];
+
         for (i = 0; i < m; i++) {
                 if (i != row) {
-                        b[i] -= (a[i][col] * b[row]) / a[row][col];
+                        b[i] = b[i] - (a[i][col] * b[row]) / a[row][col];
                 }
         }
 
@@ -106,8 +109,8 @@ void pivot(simplex_t* s, int row, int col)
                 }
                 for (j = 0; j < n; j++) {
                         if (j != col) {
-                                a[i][j] -=
-                                    (a[i][col] * a[row][j]) / a[row][col];
+                                a[i][j] = a[i][j] - ((a[i][col] * a[row][j]) /
+                                                     a[row][col]);
                         }
                 }
         }
@@ -122,15 +125,15 @@ void pivot(simplex_t* s, int row, int col)
                         a[row][i] /= a[row][col];
                 }
         }
-        b[row] /= a[row][col];
+        b[row] = b[row] / a[row][col];
         a[row][col] = 1 / a[row][col];
 }
 
 // xsimplex
-int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
-             double y, int* var, int h)
+double xsimplex(int m, int n, double** a, double* b, double* x, double* c,
+                double y, int* var, int h)
 {
-        simplex_t* s;
+        simplex_t* s = calloc(1, sizeof(simplex_t));
         int i;
         int row;
         int col;
@@ -144,7 +147,7 @@ int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
         while ((col = select_nonbasic(s)) >= 0) {
                 row = -1;
                 for (i = 0; i < m; i++) {
-                        if (a[i][col] > 0 &&
+                        if (a[i][col] > epsilon &&
                             (row < 0 ||
                              ((b[i] / a[i][col]) < (b[row] / a[row][col])))) {
                                 row = i;
@@ -153,17 +156,18 @@ int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
                 if (row < 0) {
                         free(s->var);
                         s->var = NULL;
-                        return INT_MAX;
+                        return INFINITY;
                 }
                 pivot(s, row, col);
         }
+
         if (h == 0) {
                 for (i = 0; i < n; i++) {
                         if (s->var[i] < n) {
                                 x[s->var[i]] = 0;
                         }
                 }
-                for (i = 0; i < m; i++) {
+                for (i = 0; i < n; i++) {
                         if (s->var[n + i] < n) {
                                 x[s->var[n + i]] = s->b[i];
                         }
@@ -178,11 +182,15 @@ int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
                         x[i] = s->b[i - n];
                 }
         }
-        return s->y;
+        int res = s->y;
+        free(s);
+        s = NULL;
+        return res;
 }
 
 // simplex
-int simplex(int m, int n, double** a, double* b, double* c, double* x, double y)
+double simplex(int m, int n, double** a, double* b, double* c, double* x,
+               double y)
 {
 
         return xsimplex(m, n, a, b, c, x, y, NULL, 0);

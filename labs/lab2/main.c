@@ -44,9 +44,9 @@ int main(int argc, char** argv)
         double* x = calloc(n, sizeof(double));
         double y = 0;
 
-        int res = simplex(m, n, matrix, b, c, x, y);
+        double res = simplex(m, n, matrix, b, c, x, y);
 
-        printf("Result: %d \n", res);
+        printf("Result: %lf \n", res);
 
         free(c);
         c = NULL; // good practice to set pointers to null after free
