@@ -52,6 +52,21 @@ int select_nonbasic(simplex_t* s)
         return -1;
 }
 
+int initial(simplex_t* s, int m, int n, double** a, double* b, double* x,
+            double* c, double y, int* var)
+{
+        int i;
+        int j;
+        int k;
+
+        k = init(s, m, n, a, b, x, c, y, var);
+        if (b[k] <= 0) {
+                printf("b[k] is not greater than zero: b[%d]; %lf", k, b[k]);
+                return 0;
+        }
+
+        return 1;
+}
 // simplex
 
 // xsimplex
