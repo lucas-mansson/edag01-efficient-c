@@ -1,3 +1,3 @@
 run:
-	gcc -g simplex.c -o main
-	./main < i
+	gcc -g simplex.c
+	./a.out < i

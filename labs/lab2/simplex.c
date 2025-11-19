@@ -130,7 +130,7 @@ void pivot(simplex_t* s, int row, int col)
 }
 
 // xsimplex
-double xsimplex(int m, int n, double** a, double* b, double* x, double* c,
+double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                 double y, int* var, int h)
 {
         simplex_t* s = calloc(1, sizeof(simplex_t));
@@ -213,19 +213,26 @@ int main(int argc, char** argv)
         int m, n;
 
         scanf("%d %d", &m, &n);
+        printf("Rows: %d Cols: %d \n", m, n);
+
+        printf("max z = ");
 
         // then we have a vector with n number of c-coefficients
         double* c = calloc(n, sizeof(double));
         for (int i = 0; i < n; i++) {
+                if (i > 0) {
+                        printf(" + ");
+                }
                 scanf("%lf", &c[i]);
+                printf("%2.1lfx_%d", c[i], i);
         }
         printf("\n");
 
         // then we have a matrix with m rows and n cols
-        double** matrix = alloc_matrix(m, n);
+        double** a = alloc_matrix(m, n);
         for (int i = 0; i < m; i++) {
                 for (int j = 0; j < n; j++) {
-                        scanf("%lf", &matrix[i][j]);
+                        scanf("%lf", &a[i][j]);
                 }
         }
 
@@ -235,20 +242,31 @@ int main(int argc, char** argv)
                 scanf("%lf", &b[i]);
         }
 
-        double* x = calloc(n, sizeof(double));
-        double y = 0;
+        for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                        if (j > 0) {
+                                printf(" + ");
+                        }
+                        printf("%2.1lfx_%d", a[i][j], j);
+                }
+                printf(" <= %2.1lf", b[i]);
+                printf("\n");
+        }
 
-        double res = simplex(m, n, matrix, b, c, x, y);
+        double* x = calloc(m + n, sizeof(double));
+        double y = 0.0;
+
+        double res = simplex(m, n, a, b, c, x, y);
 
         printf("Result: %lf \n", res);
 
         free(c);
         c = NULL; // good practice to set pointers to null after free
         for (int i = 0; i < m; i++) {
-                free(matrix[i]);
-                matrix[i] = NULL;
+                free(a[i]);
+                a[i] = NULL;
         }
-        free(matrix);
+        free(a);
         c = NULL;
 
         free(b);

@@ -1,7 +1,0 @@
-#ifndef SIMPLEX_H
-#define SIMPLEX_H
-
-int simplex(int m, int n, double** a, double* b, double* c, double* x,
-            double y);
-
-#endif
