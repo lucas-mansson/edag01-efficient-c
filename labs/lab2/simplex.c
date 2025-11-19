@@ -1,3 +1,5 @@
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -125,8 +127,64 @@ void pivot(simplex_t* s, int row, int col)
         a[row][col] = 1 / a[row][col];
 }
 
-// simplex
-
 // xsimplex
+int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
+             double y, int* var, int h)
+{
+        simplex_t* s;
+        int i;
+        int row;
+        int col;
 
-// initial
+        if (!initial(s, m, n, a, b, c, x, y, var)) {
+                free(s->var);
+                s->var = NULL;
+                return NAN;
+        }
+
+        while ((col = select_nonbasic(s)) >= 0) {
+                row = -1;
+                for (i = 0; i < m; i++) {
+                        if (a[i][col] > 0 &&
+                            (row < 0 ||
+                             ((b[i] / a[i][col]) < (b[row] / a[row][col])))) {
+                                row = i;
+                        }
+                }
+                if (row < 0) {
+                        free(s->var);
+                        s->var = NULL;
+                        return INT_MAX;
+                }
+                pivot(s, row, col);
+        }
+        if (h == 0) {
+                for (i = 0; i < n; i++) {
+                        if (s->var[i] < n) {
+                                x[s->var[i]] = 0;
+                        }
+                }
+                for (i = 0; i < m; i++) {
+                        if (s->var[n + i] < n) {
+                                x[s->var[n + i]] = s->b[i];
+                        }
+                }
+                free(s->var);
+                s->var = NULL;
+        } else {
+                for (i = 0; i < n; i++) {
+                        x[i] = 0;
+                }
+                for (i = n; i < n + m; i++) {
+                        x[i] = s->b[i - n];
+                }
+        }
+        return s->y;
+}
+
+// simplex
+int simplex(int m, int n, double** a, double* b, double* c, double* x, double y)
+{
+
+        return xsimplex(m, n, a, b, c, x, y, NULL, 0);
+}
