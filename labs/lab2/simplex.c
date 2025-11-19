@@ -1,5 +1,4 @@
 #include <limits.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -105,8 +104,8 @@ void pivot(simplex_t* s, int row, int col)
                 if (i == row) {
                         continue;
                 }
-                for (j = 0; j < m; j++) {
-                        if (j == col) {
+                for (j = 0; j < n; j++) {
+                        if (j != col) {
                                 a[i][j] -=
                                     (a[i][col] * a[row][j]) / a[row][col];
                         }
@@ -139,7 +138,7 @@ int xsimplex(int m, int n, double** a, double* b, double* x, double* c,
         if (!initial(s, m, n, a, b, c, x, y, var)) {
                 free(s->var);
                 s->var = NULL;
-                return NAN;
+                return -1;
         }
 
         while ((col = select_nonbasic(s)) >= 0) {
