@@ -40,6 +40,17 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* x,
         }
         return k;
 }
+// select_nonbasic
+int select_nonbasic(simplex_t* s)
+{
+        int i;
+        for (int i = 0; i < s->n; i++) {
+                if (s->c[i] > 0) {
+                        return i;
+                }
+        }
+        return -1;
+}
 
 // simplex
 
@@ -50,5 +61,3 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* x,
 // initial and assume bi ≥ 0 so skip the call to prepare and the rest of
 
 // initial
-
-// select_nonbasic
