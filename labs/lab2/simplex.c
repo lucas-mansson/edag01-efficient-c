@@ -52,6 +52,7 @@ int select_nonbasic(simplex_t* s)
         return -1;
 }
 
+// initial and assume bi ≥ 0 so skip the call to prepare and the rest of
 int initial(simplex_t* s, int m, int n, double** a, double* b, double* x,
             double* c, double y, int* var)
 {
@@ -67,12 +68,65 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* x,
 
         return 1;
 }
+
+// pivot
+void pivot(simplex_t* s, int row, int col)
+{
+        double** a = s->a;
+        double* b = s->b;
+        double* c = s->c;
+        int m = s->m;
+        int n = s->n;
+        int i;
+        int j;
+        int t;
+
+        t = s->var[col];
+        s->var[col] = s->var[n + row];
+        s->var[n + row] = t;
+        s->y += (c[col] * b[row]) / (a[row][col]);
+
+        for (i = 0; i < n; i++) {
+                if (i != col) {
+                        c[i] -= (c[col] * a[row][i]) / a[row][col];
+                }
+        }
+
+        c[col] = -c[col] / a[row][col];
+        for (i = 0; i < m; i++) {
+                if (i != row) {
+                        b[i] -= (a[i][col] * b[row]) / a[row][col];
+                }
+        }
+
+        for (i = 0; i < m; i++) {
+                if (i == row) {
+                        continue;
+                }
+                for (j = 0; j < m; j++) {
+                        if (j == col) {
+                                a[i][j] -=
+                                    (a[i][col] * a[row][j]) / a[row][col];
+                        }
+                }
+        }
+
+        for (i = 0; i < m; i++) {
+                if (i != row) {
+                        a[i][col] = -a[i][col] / a[row][col];
+                }
+        }
+        for (i = 0; i < n; i++) {
+                if (i != col) {
+                        a[row][i] /= a[row][col];
+                }
+        }
+        b[row] /= a[row][col];
+        a[row][col] = 1 / a[row][col];
+}
+
 // simplex
 
 // xsimplex
-
-// pivot
-
-// initial and assume bi ≥ 0 so skip the call to prepare and the rest of
 
 // initial
