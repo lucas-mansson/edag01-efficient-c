@@ -19,7 +19,8 @@ typedef struct simplex {
 int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
          double* x, double y, int* var)
 {
-        int i, k;
+        int i;
+        int k;
 
         s->m = m;
         s->n = n;
@@ -36,13 +37,14 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
                         s->var[i] = i;
                 }
         }
-        for (int k = 0, i = 1; i < m; i++) {
+        for (k = 0, i = 1; i < m; i++) {
                 if (s->b[i] < s->b[k]) {
                         k = i;
                 }
         }
         return k;
 }
+
 // select_nonbasic
 int select_nonbasic(simplex_t* s)
 {
@@ -63,13 +65,14 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         int j;
         int k;
 
-        k = init(s, m, n, a, b, c, x, y, var);
-        if (s->b[k] <= 0) {
-                printf("b[k] is not greater than zero: b[%d]; %lf", k, b[k]);
-                return 0;
-        }
+        double w;
 
-        return 1;
+        k = init(s, m, n, a, b, c, x, y, var);
+
+        if (s->b[k] >= 0) {
+                return 1;
+        }
+        return -1;
 }
 
 // pivot
@@ -241,6 +244,8 @@ int main(int argc, char** argv)
         // last is a vector with m number of b-values
         double* b = calloc(m, sizeof(double));
         for (int i = 0; i < m; i++) {
+                b[i] = 0;
+                printf("%lf \n", b[i]);
                 scanf("%lf", &b[i]);
         }
 
