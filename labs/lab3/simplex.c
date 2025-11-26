@@ -15,6 +15,10 @@ typedef struct simplex {
         double y;   // y
 } simplex_t;
 
+void pivot(simplex_t* s, int row, int col);
+double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
+                double y, int* var, int h);
+
 // init - 'constructor' for simplex_t
 int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
          double* x, double y, int* var)
@@ -45,7 +49,6 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
         return k;
 }
 
-// select_nonbasic
 int select_nonbasic(simplex_t* s)
 {
         for (int i = 0; i < s->n; i++) {
@@ -56,7 +59,34 @@ int select_nonbasic(simplex_t* s)
         return -1;
 }
 
-// initial and assume bi ≥ 0 so skip the call to prepare and the rest of
+void prepare(simplex_t* s, int k)
+{
+        printf("calling prepare\n");
+        int m = s->m;
+        int n = s->n;
+
+        // make room for xm+n at s.var[n] by moving s.var[n..n+m-1] one step to
+        // the right.
+        for (int i = m + n; i > n; i--) {
+                s->var[i] = s->var[i - 1];
+        }
+        s->var[n] = m + n;
+
+        // add xm+n to each constraint
+        n++;
+        for (int i = 0; i < m; i++) {
+                // s.a[i][n-1] <- -1 ??
+                s->a[i][n - 1] -= 1; // double check this
+        }
+
+        s->x = calloc(m + n, sizeof(double));
+        s->c = calloc(m, sizeof(double));
+        s->c[n - 1] = -1;
+        s->n = n;
+
+        pivot(s, k, n - 1);
+}
+
 int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
             double* x, double y, int* var)
 {
@@ -71,7 +101,94 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         if (s->b[k] >= 0) {
                 return 1;
         }
-        return -1;
+
+        prepare(s, k);
+        /*
+        n = s->n;
+        s->y = xsimplex(m, n, s->a, s->b, s->c, s->x, 0, s->var, 1);
+
+        for (i = 0; i < m + n; i++) {
+                if (s->var[i] == m + n - 1) {
+                        if (abs((int)s->x[i]) > epsilon) {
+                                free(s->x);
+                                s->x = NULL;
+                                free(s->c);
+                                s->c = NULL;
+                                return 0;
+                        } else {
+                                break;
+                        }
+                }
+        }
+
+        if (i >= n) {
+                // x_n+m is basic. find good nonbasic.
+                int j;
+                for (j = k = 0; k < n; k++) {
+                        if (abs((int)s->a[i - n][k]) >
+                            abs((int)s->a[i - n][j])) {
+                                j = k;
+                        }
+                }
+                pivot(s, i - n, j);
+                i = j;
+        }
+        if (i < n - 1) {
+                // xn+m is nonbasic and not last. swap columns i and n-1
+                k = s->var[i];
+                s->var[i] = s->var[n - 1];
+                s->var[n - 1] = k;
+                for (k = 0; k < m; k++) {
+                        double w = s->a[k][n - 1];
+                        s->var[n - 1] = s->a[k][i];
+                        s->a[k][i] = w;
+                }
+        } else {
+                // xn+m is nonbasic and last. forget it.
+        }
+        // delete s.c
+        free(s->c);
+        s->c = c;
+        s->y = y;
+
+        for (k = n - 1; k < n + m - 1; k++) {
+                s->var[k] = s->var[k + 1];
+        }
+
+        n = s->n = s->n - 1;
+        double* t = calloc(n, sizeof(double));
+
+        for (k = 0; k < n; k++) {
+                for (j = 0; j < n; j++) {
+                        if (k == s->var[j]) {
+                                // x_k is nonbasic. add ck
+                                t[j] = t[j] + s->c[k];
+                                break; // goto next_k?
+                        }
+                }
+                // xk is basic.
+                for (j = 0; j < m; j++) {
+                        if (k == s->var[n + j]) {
+                                // x_k is at row j
+                                break;
+                        }
+                }
+                s->y = s->y + (s->c[k] * s->b[j]);
+                for (i = 0; i < n; i++) {
+                        t[i] = t[i] - (s->c[k] * s->a[j][i]);
+                }
+                // next_k; ???
+        }
+        for (i = 0; i < n; i++) {
+                s->c[i] = t[i];
+        }
+
+        free(t);
+        t = NULL;
+        free(s->x);
+        s->x = NULL;
+        */
+        return 1;
 }
 
 // pivot
@@ -243,7 +360,6 @@ int main()
         double* b = calloc(m, sizeof(double));
         for (int i = 0; i < m; i++) {
                 b[i] = 0;
-                printf("%lf \n", b[i]);
                 scanf("%lf", &b[i]);
         }
 
