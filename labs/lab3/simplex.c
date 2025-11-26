@@ -77,7 +77,7 @@ void prepare(simplex_t* s, int k)
         n++;
         for (i = 0; i < m; i++) {
                 // s.a[i][n-1] <- -1 ??
-                s->a[i][n - 1] -= 1; // double check this
+                s->a[i][n - 1] = -1; // double check this
         }
 
         s->x = calloc(m + n, sizeof(double));
@@ -161,7 +161,7 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         n = s->n = s->n - 1;
         double* t = calloc(n, sizeof(double));
 
-        int next_k;
+        int next_k = 0;
         for (k = 0; k < n; k++) {
                 for (j = 0; j < n; j++) {
                         if (k == s->var[j]) {
@@ -320,22 +320,10 @@ double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
         return res;
 }
 
-// simplex
 double simplex(int m, int n, double** a, double* b, double* c, double* x,
                double y)
 {
         return xsimplex(m, n, a, b, c, x, y, NULL, 0);
-}
-
-double** alloc_matrix(int rows, int cols)
-{
-        double** a;
-
-        a = calloc(rows, sizeof(double*));
-        for (int i = 0; i < rows; i++) {
-                a[i] = calloc(cols, sizeof(double));
-        }
-        return a;
 }
 
 int main()
@@ -360,8 +348,9 @@ int main()
         printf("\n");
 
         // then we have a matrix with m rows and n cols
-        double** a = alloc_matrix(m, n);
+        double** a = calloc(m + n, sizeof(double*));
         for (int i = 0; i < m; i++) {
+                a[i] = calloc(n + 1, sizeof(double));
                 for (int j = 0; j < n; j++) {
                         scanf("%lf", &a[i][j]);
                 }
