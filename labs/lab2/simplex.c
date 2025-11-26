@@ -15,7 +15,6 @@ typedef struct simplex {
         double y;   // y
 } simplex_t;
 
-// init - 'constructor' for simplex_t
 int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
          double* x, double y, int* var)
 {
@@ -48,7 +47,6 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
 // select_nonbasic
 int select_nonbasic(simplex_t* s)
 {
-        int i;
         for (int i = 0; i < s->n; i++) {
                 if (s->c[i] > epsilon) {
                         return i;
@@ -61,11 +59,11 @@ int select_nonbasic(simplex_t* s)
 int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
             double* x, double y, int* var)
 {
-        int i;
-        int j;
+        // int i;
+        // int j;
         int k;
 
-        double w;
+        // double w;
 
         k = init(s, m, n, a, b, c, x, y, var);
 
@@ -75,7 +73,6 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         return -1;
 }
 
-// pivot
 void pivot(simplex_t* s, int row, int col)
 {
         double** a = s->a;
@@ -132,7 +129,6 @@ void pivot(simplex_t* s, int row, int col)
         a[row][col] = 1 / a[row][col];
 }
 
-// xsimplex
 double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                 double y, int* var, int h)
 {
@@ -193,7 +189,6 @@ double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
         return res;
 }
 
-// simplex
 double simplex(int m, int n, double** a, double* b, double* c, double* x,
                double y)
 {
@@ -245,7 +240,6 @@ int main(int argc, char** argv)
         double* b = calloc(m, sizeof(double));
         for (int i = 0; i < m; i++) {
                 b[i] = 0;
-                printf("%lf \n", b[i]);
                 scanf("%lf", &b[i]);
         }
 
