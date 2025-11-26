@@ -36,7 +36,7 @@ int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
         s->y = y;
 
         if (s->var == NULL) {
-                s->var = calloc(m + n + 1, sizeof(typeof(m)));
+                s->var = calloc(m + n + 1, sizeof(int));
                 for (int i = 0; i < m + n; i++) {
                         s->var[i] = i;
                 }
@@ -64,17 +64,18 @@ void prepare(simplex_t* s, int k)
         printf("calling prepare\n");
         int m = s->m;
         int n = s->n;
+        int i;
 
         // make room for xm+n at s.var[n] by moving s.var[n..n+m-1] one step to
         // the right.
-        for (int i = m + n; i > n; i--) {
+        for (i = m + n; i > n; i--) {
                 s->var[i] = s->var[i - 1];
         }
         s->var[n] = m + n;
 
         // add xm+n to each constraint
         n++;
-        for (int i = 0; i < m; i++) {
+        for (i = 0; i < m; i++) {
                 // s.a[i][n-1] <- -1 ??
                 s->a[i][n - 1] -= 1; // double check this
         }
@@ -90,8 +91,8 @@ void prepare(simplex_t* s, int k)
 int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
             double* x, double y, int* var)
 {
-        // int i;
-        // int j;
+        int i;
+        int j;
         int k;
 
         // double w;
@@ -103,13 +104,15 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         }
 
         prepare(s, k);
-        /*
+
         n = s->n;
         s->y = xsimplex(m, n, s->a, s->b, s->c, s->x, 0, s->var, 1);
 
         for (i = 0; i < m + n; i++) {
                 if (s->var[i] == m + n - 1) {
                         if (abs((int)s->x[i]) > epsilon) {
+                                // delete s.x
+                                // delete s.c
                                 free(s->x);
                                 s->x = NULL;
                                 free(s->c);
@@ -125,8 +128,7 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
                 // x_n+m is basic. find good nonbasic.
                 int j;
                 for (j = k = 0; k < n; k++) {
-                        if (abs((int)s->a[i - n][k]) >
-                            abs((int)s->a[i - n][j])) {
+                        if (fabs(s->a[i - n][k]) > fabs(s->a[i - n][j])) {
                                 j = k;
                         }
                 }
@@ -140,6 +142,7 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
                 s->var[n - 1] = k;
                 for (k = 0; k < m; k++) {
                         double w = s->a[k][n - 1];
+
                         s->var[n - 1] = s->a[k][i];
                         s->a[k][i] = w;
                 }
@@ -158,36 +161,44 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         n = s->n = s->n - 1;
         double* t = calloc(n, sizeof(double));
 
+        int next_k;
         for (k = 0; k < n; k++) {
                 for (j = 0; j < n; j++) {
                         if (k == s->var[j]) {
                                 // x_k is nonbasic. add ck
                                 t[j] = t[j] + s->c[k];
-                                break; // goto next_k?
+                                next_k = 1; // goto next_k?
+                                break;
                         }
+                }
+                if (next_k == 1) {
+                        continue; // skip rest of this k-loop
                 }
                 // xk is basic.
                 for (j = 0; j < m; j++) {
-                        if (k == s->var[n + j]) {
+                        if (s->var[n + j] == k) {
                                 // x_k is at row j
                                 break;
                         }
                 }
                 s->y = s->y + (s->c[k] * s->b[j]);
                 for (i = 0; i < n; i++) {
-                        t[i] = t[i] - (s->c[k] * s->a[j][i]);
+                        double ti = t[i];
+                        double ck = s->c[k];
+                        double aji = s->a[j][i];
+                        t[i] = ti - (ck * aji);
                 }
                 // next_k; ???
         }
         for (i = 0; i < n; i++) {
                 s->c[i] = t[i];
         }
-
+        // delete t and s.x ????
         free(t);
         t = NULL;
         free(s->x);
         s->x = NULL;
-        */
+
         return 1;
 }
 
