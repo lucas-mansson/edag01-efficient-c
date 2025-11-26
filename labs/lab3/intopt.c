@@ -19,7 +19,6 @@ void pivot(simplex_t* s, int row, int col);
 double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                 double y, int* var, int h);
 
-// init - 'constructor' for simplex_t
 int init(simplex_t* s, int m, int n, double** a, double* b, double* c,
          double* x, double y, int* var)
 {
@@ -61,7 +60,6 @@ int select_nonbasic(simplex_t* s)
 
 void prepare(simplex_t* s, int k)
 {
-        printf("calling prepare\n");
         int m = s->m;
         int n = s->n;
         int i;
@@ -151,6 +149,7 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         }
         // delete s.c
         free(s->c);
+        s->c = NULL;
         s->c = c;
         s->y = y;
 
@@ -172,6 +171,7 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
                         }
                 }
                 if (next_k == 1) {
+                        next_k = 0;
                         continue; // skip rest of this k-loop
                 }
                 // xk is basic.
@@ -183,12 +183,8 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
                 }
                 s->y = s->y + (s->c[k] * s->b[j]);
                 for (i = 0; i < n; i++) {
-                        double ti = t[i];
-                        double ck = s->c[k];
-                        double aji = s->a[j][i];
-                        t[i] = ti - (ck * aji);
+                        t[i] = t[i] - (s->c[k] * s->a[j][i]);
                 }
-                // next_k; ???
         }
         for (i = 0; i < n; i++) {
                 s->c[i] = t[i];
@@ -202,7 +198,6 @@ int initial(simplex_t* s, int m, int n, double** a, double* b, double* c,
         return 1;
 }
 
-// pivot
 void pivot(simplex_t* s, int row, int col)
 {
         double** a = s->a;
@@ -259,7 +254,6 @@ void pivot(simplex_t* s, int row, int col)
         a[row][col] = 1 / a[row][col];
 }
 
-// xsimplex
 double xsimplex(int m, int n, double** a, double* b, double* c, double* x,
                 double y, int* var, int h)
 {
@@ -389,10 +383,8 @@ int main()
         }
         free(a);
         a = NULL;
-
         free(b);
         b = NULL;
-
         free(x);
         x = NULL;
 
